@@ -29,5 +29,5 @@ jobs:
       # Runs a set of commands using the runners shell
       - name: Push image
         run: |
-             docker login -u tekoe1985 -p ${{secrets.REGISTRY_PASS}}
+             docker login -u tekoe1985  ${{secrets.REGISTRY_PASS}}
              docker push tekoe1985/my-portfolio
