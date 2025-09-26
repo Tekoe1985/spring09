@@ -25,9 +25,38 @@ jobs:
       # Runs a single command using the runners shell
       - name: build image
         run: docker build -t tekoe1985/my-portfolio .
+      # Configure AWS credentials from GitHub Secrets
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1   # Change to your AWS region
+      # Login to Amazon ECR  
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
 
-      # Runs a set of commands using the runners shell
-      - name: Push image
+       # Build, Tag, and Push the image to ECR
+      - name: Build, Tag, and Push image
         run: |
-             docker login -u tekoe1985  ${{secrets.REGISTRY_PASS}}
-             docker push tekoe1985/my-portfolio
+          IMAGE_REPO_NAME=github-action        # Change to your repo name
+          IMAGE_TAG=latest                # Or use ${{ github.sha }} for unique tags
+          ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}
+
+          # Build Docker image
+           docker build -t $IMAGE_REPO_NAME:$IMAGE_TAG .
+
+          # Tag image with full ECR path
+          docker tag $IMAGE_REPO_NAME:$IMAGE_TAG $ECR_REGISTRY/$IMAGE_REPO_NAME:$IMAGE_TAG
+
+          # Push image to ECR
+          docker push $ECR_REGISTRY/$IMAGE_REPO_NAME:$IMAGE_TAG
+
+      
+      # Runs a set of commands using the runners shell
+      #- name: Push image
+       # run: |
+        #     docker login -u tekoe1985  ${{secrets.REGISTRY_PASS}}
+         #    docker push tekoe1985/my-portfolio
+      
